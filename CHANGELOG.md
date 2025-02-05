@@ -4,6 +4,12 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.5] - 2025-02-04
+
+### Corregido
+- Arreglado el problema de valores indefinidos en los reportes de facturación
+- Mejorado el formato de visualización de fechas y estados en los reportes
+
 ## [1.2.4] - 2025-02-04
 
 ### Cambiado

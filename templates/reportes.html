@@ -140,35 +140,16 @@ function mostrarReporte(datos, tipo) {
     const tbody = document.getElementById('datos-reporte');
     
     // Definir encabezados según el tipo de reporte
-    const columnas = tipo === 'inquilino' 
-        ? [
-            { key: 'nombre', label: 'Inquilino' },
-            { key: 'dni', label: 'DNI' },
-            { key: 'cantidad_facturas', label: 'Cantidad Facturas' },
-            { key: 'total_facturado', label: 'Total Facturado' },
-            { key: 'total_pagado', label: 'Total Pagado' },
-            { key: 'total_pendiente', label: 'Total Pendiente' }
-        ]
-        : tipo === 'propiedad'
-        ? [
-            { key: 'direccion', label: 'Dirección' },
-            { key: 'tipo', label: 'Tipo' },
-            { key: 'cantidad_facturas', label: 'Cantidad Facturas' },
-            { key: 'total_facturado', label: 'Total Facturado' },
-            { key: 'total_pagado', label: 'Total Pagado' },
-            { key: 'total_pendiente', label: 'Total Pendiente' }
-        ]
-        : [
-            { key: 'fecha', label: 'Fecha' },
-            { key: 'propiedad', label: 'Propiedad' },
-            { key: 'tipo_propiedad', label: 'Tipo' },
-            { key: 'inquilino', label: 'Inquilino' },
-            { key: 'dni', label: 'DNI' },
-            { key: 'descripcion', label: 'Descripción' },
-            { key: 'debito', label: 'Débito' },
-            { key: 'credito', label: 'Crédito' },
-            { key: 'saldo', label: 'Saldo' }
-        ];
+    const columnas = [
+        { key: 'fecha_emision', label: 'Fecha' },
+        { key: 'direccion', label: 'Propiedad' },
+        { key: 'inquilino_nombre', label: 'Inquilino' },
+        { key: 'dni', label: 'DNI' },
+        { key: 'monto', label: 'Monto' },
+        { key: 'pagado', label: 'Estado' },
+        { key: 'fecha_pago', label: 'Fecha Pago' },
+        { key: 'propietario_nombre', label: 'Propietario' }
+    ];
     
     // Generar encabezados
     encabezados.innerHTML = columnas.map(col => `<th>${col.label}</th>`).join('');
@@ -179,11 +160,13 @@ function mostrarReporte(datos, tipo) {
             ${columnas.map(col => {
                 let valor = row[col.key];
                 if (typeof valor === 'number') {
-                    if (col.key.startsWith('total') || col.key === 'debito' || col.key === 'credito' || col.key === 'saldo') {
+                    if (col.key === 'monto' || col.key === 'monto_mensual') {
                         valor = `$${valor.toFixed(2)}`;
                     }
+                } else if (col.key === 'pagado') {
+                    valor = valor ? 'Pagado' : 'Pendiente';
                 }
-                return `<td>${valor}</td>`;
+                return `<td>${valor || '-'}</td>`;
             }).join('')}
         </tr>
     `).join('');
