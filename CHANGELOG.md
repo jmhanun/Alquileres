@@ -4,6 +4,13 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-02-04
+
+### Cambiado
+- Simplificada la interfaz de la página principal
+- Eliminado el widget de reporte rápido de facturación para mejorar la usabilidad
+- Centralizada la funcionalidad de reportes en su sección dedicada
+
 ## [1.2.0] - 2025-02-04
 
 ### Agregado
