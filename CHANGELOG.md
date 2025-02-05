@@ -4,6 +4,14 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2025-02-04
+
+### Agregado
+- Widget de Contratos en la página principal para acceso directo a la gestión de contratos
+
+### Cambiado
+- Mejorado el diseño responsive de los widgets en la página principal
+
 ## [1.2.1] - 2025-02-04
 
 ### Cambiado
