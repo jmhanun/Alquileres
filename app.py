@@ -175,169 +175,6 @@ def importar_csv():
             os.remove(filepath)
         return jsonify({'error': f'Error durante la importación: {str(e)}'}), 500
 
-@app.route('/api/reporte-facturacion', methods=['GET', 'POST'])
-def reporte_facturacion():
-    if request.method == 'GET':
-        fecha_inicio = datetime.strptime(request.args.get('fecha_inicio'), '%Y-%m-%d')
-        fecha_fin = datetime.strptime(request.args.get('fecha_fin'), '%Y-%m-%d')
-        tipo_reporte = request.args.get('tipo')
-        formato = request.args.get('formato', 'json')
-    else:  # POST
-        data = request.get_json()
-        fecha_inicio = datetime.strptime(data['fecha_inicio'], '%Y-%m-%d')
-        fecha_fin = datetime.strptime(data['fecha_fin'], '%Y-%m-%d')
-        tipo_reporte = data['tipo']
-        formato = data.get('formato', 'json')
-
-    if tipo_reporte == 'contabilidad':
-        # Consulta para el reporte contable
-        resultados = db.session.query(
-            Factura.fecha_emision,
-            Factura.monto,
-            Factura.pagado,
-            Factura.fecha_pago,
-            Contrato.monto_mensual,
-            Inquilino.nombre.label('inquilino_nombre'),
-            Inquilino.dni.label('inquilino_dni'),
-            Propiedad.direccion.label('propiedad_direccion'),
-            Propiedad.tipo.label('propiedad_tipo'),
-            func.extract('year', Factura.fecha_emision).label('anio')
-        ).join(Contrato, Factura.contrato_id == Contrato.id)\
-         .join(Inquilino, Contrato.inquilino_id == Inquilino.id)\
-         .join(Propiedad, Contrato.propiedad_id == Propiedad.id)\
-         .filter(Factura.fecha_emision.between(fecha_inicio, fecha_fin))\
-         .order_by(func.extract('year', Factura.fecha_emision),
-                  Propiedad.direccion,
-                  Inquilino.nombre,
-                  Factura.fecha_emision)\
-         .all()
-
-        # Procesar los resultados para el formato contable
-        data_list = []
-        saldo_acumulado = 0
-        
-        for r in resultados:
-            # Entrada para la factura (débito)
-            saldo_acumulado += r.monto
-            data_list.append({
-                'fecha': r.fecha_emision.strftime('%d/%m/%Y'),
-                'descripcion': f'Factura - {r.propiedad_direccion} - {r.inquilino_nombre} (DNI: {r.inquilino_dni})',
-                'debito': float(r.monto),
-                'credito': 0,
-                'saldo': saldo_acumulado,
-                'anio': r.anio,
-                'propiedad': r.propiedad_direccion,
-                'tipo_propiedad': r.propiedad_tipo,
-                'inquilino': r.inquilino_nombre,
-                'dni': r.inquilino_dni
-            })
-            
-            # Si la factura está pagada, agregar el pago (crédito)
-            if r.pagado:
-                saldo_acumulado -= r.monto
-                data_list.append({
-                    'fecha': r.fecha_pago.strftime('%d/%m/%Y'),
-                    'descripcion': f'Pago - {r.propiedad_direccion} - {r.inquilino_nombre} (DNI: {r.inquilino_dni})',
-                    'debito': 0,
-                    'credito': float(r.monto),
-                    'saldo': saldo_acumulado,
-                    'anio': r.anio,
-                    'propiedad': r.propiedad_direccion,
-                    'tipo_propiedad': r.propiedad_tipo,
-                    'inquilino': r.inquilino_nombre,
-                    'dni': r.inquilino_dni
-                })
-
-        if formato == 'csv':
-            if not data_list:
-                return jsonify({'error': 'No hay datos para exportar'}), 404
-                
-            df = pd.DataFrame(data_list)
-            # Ordenar las columnas para el CSV
-            columns = ['fecha', 'anio', 'propiedad', 'tipo_propiedad', 'inquilino', 'dni', 
-                      'descripcion', 'debito', 'credito', 'saldo']
-            df = df[columns]
-            csv_data = df.to_csv(index=False)
-            return Response(
-                csv_data,
-                mimetype="text/csv",
-                headers={"Content-disposition": f"attachment; filename=reporte_contable_{fecha_inicio.strftime('%Y%m%d')}_{fecha_fin.strftime('%Y%m%d')}.csv"}
-            )
-        
-        return jsonify(data_list)
-    
-    elif tipo_reporte == 'inquilino':
-        resultados = db.session.query(
-            Inquilino.nombre,
-            Inquilino.dni,
-            func.count(Factura.id).label('cantidad_facturas'),
-            func.sum(Factura.monto).label('total_facturado'),
-            func.sum(case((Factura.pagado == True, Factura.monto), else_=0)).label('total_pagado')
-        ).join(Contrato, Inquilino.id == Contrato.inquilino_id)\
-         .join(Factura, Contrato.id == Factura.contrato_id)\
-         .filter(Factura.fecha_emision.between(fecha_inicio, fecha_fin))\
-         .group_by(Inquilino.id, Inquilino.nombre, Inquilino.dni)\
-         .all()
-        
-        data_list = [{
-            'nombre': r.nombre,
-            'dni': r.dni,
-            'cantidad_facturas': r.cantidad_facturas,
-            'total_facturado': float(r.total_facturado or 0),
-            'total_pagado': float(r.total_pagado or 0),
-            'total_pendiente': float((r.total_facturado or 0) - (r.total_pagado or 0))
-        } for r in resultados]
-
-        if formato == 'csv':
-            if not data_list:
-                return jsonify({'error': 'No hay datos para exportar'}), 404
-                
-            df = pd.DataFrame(data_list)
-            csv_data = df.to_csv(index=False)
-            return Response(
-                csv_data,
-                mimetype="text/csv",
-                headers={"Content-disposition": f"attachment; filename=reporte_inquilinos_{fecha_inicio.strftime('%Y%m%d')}_{fecha_fin.strftime('%Y%m%d')}.csv"}
-            )
-        
-        return jsonify(data_list)
-    
-    else:  # tipo_reporte == 'propiedad'
-        resultados = db.session.query(
-            Propiedad.direccion,
-            Propiedad.tipo,
-            func.count(Factura.id).label('cantidad_facturas'),
-            func.sum(Factura.monto).label('total_facturado'),
-            func.sum(case((Factura.pagado == True, Factura.monto), else_=0)).label('total_pagado')
-        ).join(Contrato, Propiedad.id == Contrato.propiedad_id)\
-         .join(Factura, Contrato.id == Factura.contrato_id)\
-         .filter(Factura.fecha_emision.between(fecha_inicio, fecha_fin))\
-         .group_by(Propiedad.id, Propiedad.direccion, Propiedad.tipo)\
-         .all()
-        
-        data_list = [{
-            'direccion': r.direccion,
-            'tipo': r.tipo,
-            'cantidad_facturas': r.cantidad_facturas,
-            'total_facturado': float(r.total_facturado or 0),
-            'total_pagado': float(r.total_pagado or 0),
-            'total_pendiente': float((r.total_facturado or 0) - (r.total_pagado or 0))
-        } for r in resultados]
-
-        if formato == 'csv':
-            if not data_list:
-                return jsonify({'error': 'No hay datos para exportar'}), 404
-                
-            df = pd.DataFrame(data_list)
-            csv_data = df.to_csv(index=False)
-            return Response(
-                csv_data,
-                mimetype="text/csv",
-                headers={"Content-disposition": f"attachment; filename=reporte_propiedades_{fecha_inicio.strftime('%Y%m%d')}_{fecha_fin.strftime('%Y%m%d')}.csv"}
-            )
-        
-        return jsonify(data_list)
-
 @app.route('/api/inquilinos', methods=['POST'])
 def crear_inquilino():
     try:
@@ -362,6 +199,10 @@ def crear_inquilino():
         }), 201
     except Exception as e:
         db.session.rollback()
+        if 'UNIQUE constraint failed: inquilino.dni' in str(e):
+            return jsonify({'error': 'DNI ya existe'}), 400
+        if 'UNIQUE constraint failed: inquilino.email' in str(e):
+            return jsonify({'error': 'Email ya existe'}), 400
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/inquilinos/<int:id>', methods=['GET', 'PUT', 'DELETE'])
@@ -399,24 +240,34 @@ def gestionar_inquilino(id):
             db.session.rollback()
             return jsonify({'error': str(e)}), 400
 
+@app.route('/api/propietarios', methods=['POST'])
+def crear_propietario():
+    try:
+        data = request.get_json()
+        nuevo_propietario = Propietario(
+            nombre=data['nombre'],
+            email=data['email']
+        )
+        db.session.add(nuevo_propietario)
+        db.session.commit()
+        return jsonify({
+            'message': 'Propietario creado exitosamente',
+            'id': nuevo_propietario.id,
+            'nombre': nuevo_propietario.nombre,
+            'email': nuevo_propietario.email
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
 @app.route('/api/propiedades', methods=['POST'])
 def crear_propiedad():
     try:
         data = request.get_json()
-        # Buscar o crear propietario
-        propietario = Propietario.query.filter_by(nombre=data['propietario_nombre']).first()
-        if not propietario:
-            propietario = Propietario(
-                nombre=data['propietario_nombre'],
-                email=data['propietario_email']
-            )
-            db.session.add(propietario)
-            db.session.flush()
-
         nueva_propiedad = Propiedad(
             direccion=data['direccion'],
             tipo=data['tipo'],
-            propietario_id=propietario.id
+            propietario_id=data['propietario_id']
         )
         db.session.add(nueva_propiedad)
         db.session.commit()
@@ -426,7 +277,7 @@ def crear_propiedad():
                 'id': nueva_propiedad.id,
                 'direccion': nueva_propiedad.direccion,
                 'tipo': nueva_propiedad.tipo,
-                'propietario': propietario.nombre
+                'propietario_id': nueva_propiedad.propietario_id
             }
         }), 201
     except Exception as e:
@@ -594,6 +445,63 @@ def gestionar_factura(id):
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 400
+
+@app.route('/api/reporte-facturacion', methods=['POST'])
+def reporte_facturacion():
+    try:
+        data = request.get_json()
+        fecha_inicio = datetime.strptime(data['fecha_inicio'], '%Y-%m-%d').date()
+        fecha_fin = datetime.strptime(data['fecha_fin'], '%Y-%m-%d').date()
+        tipo = data.get('tipo', 'contabilidad')  # 'contabilidad' o 'morosidad'
+
+        # Base query
+        query = db.session.query(
+            Factura.id,
+            Factura.fecha_emision,
+            Factura.monto,
+            Factura.pagado,
+            Factura.fecha_pago,
+            Contrato.monto_mensual,
+            Inquilino.nombre.label('inquilino_nombre'),
+            Inquilino.dni,
+            Propiedad.direccion,
+            Propietario.nombre.label('propietario_nombre')
+        ).join(
+            Contrato, Factura.contrato_id == Contrato.id
+        ).join(
+            Inquilino, Contrato.inquilino_id == Inquilino.id
+        ).join(
+            Propiedad, Contrato.propiedad_id == Propiedad.id
+        ).join(
+            Propietario, Propiedad.propietario_id == Propietario.id
+        ).filter(
+            Factura.fecha_emision >= fecha_inicio,
+            Factura.fecha_emision <= fecha_fin
+        )
+
+        if tipo == 'morosidad':
+            query = query.filter(Factura.pagado == False)
+
+        facturas = query.all()
+        
+        result = []
+        for f in facturas:
+            result.append({
+                'id': f.id,
+                'fecha_emision': f.fecha_emision.strftime('%Y-%m-%d'),
+                'monto': f.monto,
+                'pagado': f.pagado,
+                'fecha_pago': f.fecha_pago.strftime('%Y-%m-%d') if f.fecha_pago else None,
+                'monto_mensual': f.monto_mensual,
+                'inquilino_nombre': f.inquilino_nombre,
+                'dni': f.dni,
+                'direccion': f.direccion,
+                'propietario_nombre': f.propietario_nombre
+            })
+        
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
     with app.app_context():

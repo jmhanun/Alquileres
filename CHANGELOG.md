@@ -4,6 +4,26 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-02-04
+
+### Agregado
+- Suite de tests unitarios usando pytest para modelos y rutas
+- Configuración de pytest para testing
+- Cobertura de código con pytest-cov
+- Tests para validación de DNI y email únicos
+- Tests para creación de inquilinos, propiedades y reportes
+- Fixture para limpiar la base de datos entre tests
+
+### Cambiado
+- Mejorado el manejo de errores en la API para DNI y email duplicados
+- Optimizada la ruta de reportes de facturación
+- Actualizada la validación de fechas en reportes
+
+### Corregido
+- Error en la creación de inquilinos con caracteres especiales
+- Problema con la comparación de fechas en el reporte de facturación
+- Limpieza de la base de datos entre tests para evitar conflictos
+
 ## [1.1.0] - 2025-02-04
 
 ### Agregado
@@ -19,8 +39,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Reorganizada la presentación de datos en reportes para mejor legibilidad
 
 ### Corregido
-- Validación de campos numéricos en formularios
-- Formato de fechas en exportación CSV
+- Validación de datos en formularios
+- Formato de fechas en reportes
+- Cálculos de totales en reportes contables
 
 ## [1.0.0] - 2025-02-01
 
