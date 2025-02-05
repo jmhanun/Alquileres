@@ -4,6 +4,12 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2025-02-04
+
+### Cambiado
+- Reordenado el menú de navegación para coincidir con el orden de los widgets en la página principal
+- Mejorada la consistencia en la navegación del sistema
+
 ## [1.2.3] - 2025-02-04
 
 ### Agregado
