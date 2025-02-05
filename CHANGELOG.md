@@ -4,6 +4,16 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2025-02-04
+
+### Agregado
+- Íconos en la barra de navegación para Inquilinos e Importar
+- Ícono de inicio en el logo del sistema
+
+### Cambiado
+- Mejorada la consistencia visual de la barra de navegación
+- Actualizado el diseño del logo para incluir ícono
+
 ## [1.2.2] - 2025-02-04
 
 ### Agregado
