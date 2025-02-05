@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Contratos</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevoContratoModal">
+            <i class="bi bi-plus-circle"></i> Nuevo Contrato
+        </button>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Inquilino</th>
+                <th>Propiedad</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Monto Mensual</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for contrato in contratos %}
+            <tr>
+                <td>{{ contrato.inquilino.nombre }}</td>
+                <td>{{ contrato.propiedad.direccion }}</td>
+                <td>{{ contrato.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+                <td>{{ contrato.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                <td>${{ "%.2f"|format(contrato.monto_mensual) }}</td>
+                <td>
+                    {% if contrato.activo %}
+                    <span class="badge bg-success">Activo</span>
+                    {% else %}
+                    <span class="badge bg-danger">Finalizado</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-info" title="Ver detalles">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-warning" title="Editar" onclick="editarContrato({{ contrato.id }})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" title="Eliminar" onclick="eliminarContrato({{ contrato.id }})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    <button class="btn btn-sm btn-success" title="Nueva factura" onclick="window.location.href='/facturas'">
+                        <i class="bi bi-receipt"></i>
+                    </button>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="text-center">No hay contratos registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Nuevo Contrato -->
+<div class="modal fade" id="nuevoContratoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nuevo Contrato</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="nuevoContratoForm">
+                    <div class="mb-3">
+                        <label for="inquilino_id" class="form-label">Inquilino</label>
+                        <select class="form-control" id="inquilino_id" name="inquilino_id" required>
+                            <option value="">Seleccione un inquilino...</option>
+                            {% for inquilino in inquilinos %}
+                            <option value="{{ inquilino.id }}">{{ inquilino.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="propiedad_id" class="form-label">Propiedad</label>
+                        <select class="form-control" id="propiedad_id" name="propiedad_id" required>
+                            <option value="">Seleccione una propiedad...</option>
+                            {% for propiedad in propiedades %}
+                            <option value="{{ propiedad.id }}">{{ propiedad.direccion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
+                        <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fecha_fin" class="form-label">Fecha de Fin</label>
+                        <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="monto_mensual" class="form-label">Monto Mensual</label>
+                        <input type="number" step="0.01" class="form-control" id="monto_mensual" name="monto_mensual" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="crearContrato()">Crear Contrato</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Contrato -->
+<div class="modal fade" id="editarContratoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Contrato</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editarContratoForm">
+                    <input type="hidden" id="editar_id">
+                    <div class="mb-3">
+                        <label for="editar_inquilino_id" class="form-label">Inquilino</label>
+                        <select class="form-control" id="editar_inquilino_id" name="inquilino_id" required>
+                            <option value="">Seleccione un inquilino...</option>
+                            {% for inquilino in inquilinos %}
+                            <option value="{{ inquilino.id }}">{{ inquilino.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_propiedad_id" class="form-label">Propiedad</label>
+                        <select class="form-control" id="editar_propiedad_id" name="propiedad_id" required>
+                            <option value="">Seleccione una propiedad...</option>
+                            {% for propiedad in propiedades %}
+                            <option value="{{ propiedad.id }}">{{ propiedad.direccion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_fecha_inicio" class="form-label">Fecha de Inicio</label>
+                        <input type="date" class="form-control" id="editar_fecha_inicio" name="fecha_inicio" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_fecha_fin" class="form-label">Fecha de Fin</label>
+                        <input type="date" class="form-control" id="editar_fecha_fin" name="fecha_fin" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_monto_mensual" class="form-label">Monto Mensual</label>
+                        <input type="number" step="0.01" class="form-control" id="editar_monto_mensual" name="monto_mensual" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="editar_activo" name="activo">
+                        <label class="form-check-label" for="editar_activo">Contrato Activo</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="actualizarContrato()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function crearContrato() {
+    const formData = {
+        inquilino_id: document.getElementById('inquilino_id').value,
+        propiedad_id: document.getElementById('propiedad_id').value,
+        fecha_inicio: document.getElementById('fecha_inicio').value,
+        fecha_fin: document.getElementById('fecha_fin').value,
+        monto_mensual: document.getElementById('monto_mensual').value
+    };
+
+    enviarDatos('/api/contratos', formData);
+}
+
+async function editarContrato(id) {
+    try {
+        const response = await fetch(`/api/contratos/${id}`);
+        const data = await response.json();
+        
+        document.getElementById('editar_id').value = id;
+        document.getElementById('editar_inquilino_id').value = data.inquilino_id;
+        document.getElementById('editar_propiedad_id').value = data.propiedad_id;
+        document.getElementById('editar_fecha_inicio').value = data.fecha_inicio;
+        document.getElementById('editar_fecha_fin').value = data.fecha_fin;
+        document.getElementById('editar_monto_mensual').value = data.monto_mensual;
+        document.getElementById('editar_activo').checked = data.activo;
+        
+        new bootstrap.Modal(document.getElementById('editarContratoModal')).show();
+    } catch (error) {
+        mostrarMensaje('Error al cargar los datos del contrato', 'error');
+    }
+}
+
+async function actualizarContrato() {
+    const id = document.getElementById('editar_id').value;
+    const formData = {
+        inquilino_id: document.getElementById('editar_inquilino_id').value,
+        propiedad_id: document.getElementById('editar_propiedad_id').value,
+        fecha_inicio: document.getElementById('editar_fecha_inicio').value,
+        fecha_fin: document.getElementById('editar_fecha_fin').value,
+        monto_mensual: document.getElementById('editar_monto_mensual').value,
+        activo: document.getElementById('editar_activo').checked
+    };
+
+    try {
+        const response = await fetch(`/api/contratos/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            mostrarMensaje(data.message, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('editarContratoModal')).hide();
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            mostrarMensaje(data.error, 'error');
+        }
+    } catch (error) {
+        mostrarMensaje('Error al actualizar el contrato', 'error');
+    }
+}
+
+async function eliminarContrato(id) {
+    if (!confirm('¿Está seguro de que desea eliminar este contrato?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/contratos/${id}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            mostrarMensaje(data.message, 'success');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            mostrarMensaje(data.error, 'error');
+        }
+    } catch (error) {
+        mostrarMensaje('Error al eliminar el contrato', 'error');
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Facturas</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevaFacturaModal">
+            <i class="bi bi-plus-circle"></i> Nueva Factura
+        </button>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fecha Emisión</th>
+                <th>Monto</th>
+                <th>Estado</th>
+                <th>Fecha Pago</th>
+                <th>Inquilino</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for factura in facturas %}
+            <tr>
+                <td>{{ factura.id }}</td>
+                <td>{{ factura.fecha_emision.strftime('%d/%m/%Y') }}</td>
+                <td>${{ "%.2f"|format(factura.monto) }}</td>
+                <td>
+                    {% if factura.pagado %}
+                    <span class="badge bg-success">Pagado</span>
+                    {% else %}
+                    <span class="badge bg-danger">Pendiente</span>
+                    {% endif %}
+                </td>
+                <td>{{ factura.fecha_pago.strftime('%d/%m/%Y') if factura.fecha_pago else '-' }}</td>
+                <td>{{ factura.contrato.inquilino.nombre }} {{ factura.contrato.inquilino.apellido }}</td>
+                <td>
+                    <button class="btn btn-sm btn-info" title="Ver detalles">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-warning" title="Editar" onclick="editarFactura({{ factura.id }})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" title="Eliminar" onclick="eliminarFactura({{ factura.id }})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="text-center">No hay facturas registradas</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Nueva Factura -->
+<div class="modal fade" id="nuevaFacturaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nueva Factura</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="nuevaFacturaForm">
+                    <div class="mb-3">
+                        <label for="contrato_id" class="form-label">Contrato</label>
+                        <select class="form-control" id="contrato_id" name="contrato_id" required>
+                            <option value="">Seleccione un contrato...</option>
+                            {% for contrato in contratos %}
+                            <option value="{{ contrato.id }}">
+                                {{ contrato.inquilino.nombre }} {{ contrato.inquilino.apellido }} - {{ contrato.propiedad.direccion }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fecha_emision" class="form-label">Fecha de Emisión</label>
+                        <input type="date" class="form-control" id="fecha_emision" name="fecha_emision" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="monto" class="form-label">Monto</label>
+                        <input type="number" step="0.01" class="form-control" id="monto" name="monto" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="pagado" name="pagado">
+                        <label class="form-check-label" for="pagado">Pagado</label>
+                    </div>
+                    <div class="mb-3" id="fecha_pago_container" style="display: none;">
+                        <label for="fecha_pago" class="form-label">Fecha de Pago</label>
+                        <input type="date" class="form-control" id="fecha_pago" name="fecha_pago">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="crearFactura()">Crear Factura</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Factura -->
+<div class="modal fade" id="editarFacturaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Factura</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editarFacturaForm">
+                    <input type="hidden" id="editar_id">
+                    <div class="mb-3">
+                        <label for="editar_contrato_id" class="form-label">Contrato</label>
+                        <select class="form-control" id="editar_contrato_id" name="contrato_id" required>
+                            <option value="">Seleccione un contrato...</option>
+                            {% for contrato in contratos %}
+                            <option value="{{ contrato.id }}">
+                                {{ contrato.inquilino.nombre }} {{ contrato.inquilino.apellido }} - {{ contrato.propiedad.direccion }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_fecha_emision" class="form-label">Fecha de Emisión</label>
+                        <input type="date" class="form-control" id="editar_fecha_emision" name="fecha_emision" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_monto" class="form-label">Monto</label>
+                        <input type="number" step="0.01" class="form-control" id="editar_monto" name="monto" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="editar_pagado" name="pagado">
+                        <label class="form-check-label" for="editar_pagado">Pagado</label>
+                    </div>
+                    <div class="mb-3" id="editar_fecha_pago_container" style="display: none;">
+                        <label for="editar_fecha_pago" class="form-label">Fecha de Pago</label>
+                        <input type="date" class="form-control" id="editar_fecha_pago" name="fecha_pago">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="actualizarFactura()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('pagado').addEventListener('change', function() {
+    document.getElementById('fecha_pago_container').style.display = this.checked ? 'block' : 'none';
+});
+
+document.getElementById('editar_pagado').addEventListener('change', function() {
+    document.getElementById('editar_fecha_pago_container').style.display = this.checked ? 'block' : 'none';
+});
+
+function crearFactura() {
+    const formData = {
+        contrato_id: document.getElementById('contrato_id').value,
+        fecha_emision: document.getElementById('fecha_emision').value,
+        monto: document.getElementById('monto').value,
+        pagado: document.getElementById('pagado').checked,
+        fecha_pago: document.getElementById('pagado').checked ? document.getElementById('fecha_pago').value : null
+    };
+
+    enviarDatos('/api/facturas', formData);
+}
+
+async function editarFactura(id) {
+    try {
+        const response = await fetch(`/api/facturas/${id}`);
+        const data = await response.json();
+        
+        document.getElementById('editar_id').value = id;
+        document.getElementById('editar_contrato_id').value = data.contrato_id;
+        document.getElementById('editar_fecha_emision').value = data.fecha_emision;
+        document.getElementById('editar_monto').value = data.monto;
+        document.getElementById('editar_pagado').checked = data.pagado;
+        
+        if (data.pagado && data.fecha_pago) {
+            document.getElementById('editar_fecha_pago').value = data.fecha_pago;
+            document.getElementById('editar_fecha_pago_container').style.display = 'block';
+        } else {
+            document.getElementById('editar_fecha_pago_container').style.display = 'none';
+        }
+        
+        new bootstrap.Modal(document.getElementById('editarFacturaModal')).show();
+    } catch (error) {
+        mostrarMensaje('Error al cargar los datos de la factura', 'error');
+    }
+}
+
+async function actualizarFactura() {
+    const id = document.getElementById('editar_id').value;
+    const formData = {
+        contrato_id: document.getElementById('editar_contrato_id').value,
+        fecha_emision: document.getElementById('editar_fecha_emision').value,
+        monto: document.getElementById('editar_monto').value,
+        pagado: document.getElementById('editar_pagado').checked,
+        fecha_pago: document.getElementById('editar_pagado').checked ? document.getElementById('editar_fecha_pago').value : null
+    };
+
+    try {
+        const response = await fetch(`/api/facturas/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            mostrarMensaje(data.message, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('editarFacturaModal')).hide();
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            mostrarMensaje(data.error, 'error');
+        }
+    } catch (error) {
+        mostrarMensaje('Error al actualizar la factura', 'error');
+    }
+}
+
+async function eliminarFactura(id) {
+    if (!confirm('¿Está seguro de que desea eliminar esta factura?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/facturas/${id}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            mostrarMensaje(data.message, 'success');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            mostrarMensaje(data.error, 'error');
+        }
+    } catch (error) {
+        mostrarMensaje('Error al eliminar la factura', 'error');
+    }
+}
+</script>
+{% endblock %}

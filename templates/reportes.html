@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Reportes de Facturación</h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="form-group" id="grupo-fecha-inicio">
+            <label for="fecha_inicio">Fecha Inicio:</label>
+            <input type="date" class="form-control" id="fecha_inicio" required>
+        </div>
+        <div class="form-group d-none" id="grupo-anio">
+            <label for="anio">Año:</label>
+            <select class="form-control" id="anio" required>
+                {% for anio in range(2020, 2026) %}
+                    <option value="{{ anio }}">{{ anio }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group" id="grupo-fecha-fin">
+            <label for="fecha_fin">Fecha Fin:</label>
+            <input type="date" class="form-control" id="fecha_fin" required>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label for="tipo_reporte">Tipo de Reporte:</label>
+            <select class="form-control" id="tipo_reporte" required onchange="cambiarTipoReporte()">
+                <option value="contabilidad">Reporte Contable</option>
+                <option value="inquilino">Por Inquilino</option>
+                <option value="propiedad">Por Propiedad</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <button class="btn btn-primary me-2" onclick="generarReporte('json')">
+            <i class="bi bi-graph-up"></i> Generar Reporte
+        </button>
+        <button class="btn btn-success" onclick="generarReporte('csv')">
+            <i class="bi bi-file-earmark-excel"></i> Exportar a CSV
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-striped" id="tabla-reporte">
+                <thead>
+                    <tr id="encabezados-reporte">
+                        <!-- Los encabezados se generarán dinámicamente -->
+                    </tr>
+                </thead>
+                <tbody id="datos-reporte">
+                    <!-- Los datos se generarán dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function cambiarTipoReporte() {
+    const tipo = document.getElementById('tipo_reporte').value;
+    const grupoFechaInicio = document.getElementById('grupo-fecha-inicio');
+    const grupoFechaFin = document.getElementById('grupo-fecha-fin');
+    const grupoAnio = document.getElementById('grupo-anio');
+    
+    if (tipo === 'contabilidad') {
+        grupoFechaInicio.classList.add('d-none');
+        grupoFechaFin.classList.add('d-none');
+        grupoAnio.classList.remove('d-none');
+    } else {
+        grupoFechaInicio.classList.remove('d-none');
+        grupoFechaFin.classList.remove('d-none');
+        grupoAnio.classList.add('d-none');
+    }
+}
+
+// Ejecutar al cargar la página
+document.addEventListener('DOMContentLoaded', cambiarTipoReporte);
+
+async function generarReporte(formato = 'json') {
+    const tipo_reporte = document.getElementById('tipo_reporte').value;
+    let fecha_inicio, fecha_fin;
+    
+    if (tipo_reporte === 'contabilidad') {
+        const anio = document.getElementById('anio').value;
+        fecha_inicio = `${anio}-01-01`;
+        fecha_fin = `${anio}-12-31`;
+    } else {
+        fecha_inicio = document.getElementById('fecha_inicio').value;
+        fecha_fin = document.getElementById('fecha_fin').value;
+        
+        if (!fecha_inicio || !fecha_fin) {
+            alert('Por favor, seleccione las fechas del reporte');
+            return;
+        }
+    }
+
+    try {
+        if (formato === 'csv') {
+            // Para CSV, hacer una petición que descargue el archivo
+            window.location.href = `/api/reporte-facturacion?fecha_inicio=${fecha_inicio}&fecha_fin=${fecha_fin}&tipo=${tipo_reporte}&formato=csv`;
+            return;
+        }
+
+        const response = await fetch('/api/reporte-facturacion', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                fecha_inicio,
+                fecha_fin,
+                tipo: tipo_reporte,
+                formato: 'json'
+            })
+        });
+
+        const datos = await response.json();
+        mostrarReporte(datos, tipo_reporte);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al generar el reporte');
+    }
+}
+
+function mostrarReporte(datos, tipo) {
+    const encabezados = document.getElementById('encabezados-reporte');
+    const tbody = document.getElementById('datos-reporte');
+    
+    // Definir encabezados según el tipo de reporte
+    const columnas = tipo === 'inquilino' 
+        ? [
+            { key: 'nombre', label: 'Inquilino' },
+            { key: 'dni', label: 'DNI' },
+            { key: 'cantidad_facturas', label: 'Cantidad Facturas' },
+            { key: 'total_facturado', label: 'Total Facturado' },
+            { key: 'total_pagado', label: 'Total Pagado' },
+            { key: 'total_pendiente', label: 'Total Pendiente' }
+        ]
+        : tipo === 'propiedad'
+        ? [
+            { key: 'direccion', label: 'Dirección' },
+            { key: 'tipo', label: 'Tipo' },
+            { key: 'cantidad_facturas', label: 'Cantidad Facturas' },
+            { key: 'total_facturado', label: 'Total Facturado' },
+            { key: 'total_pagado', label: 'Total Pagado' },
+            { key: 'total_pendiente', label: 'Total Pendiente' }
+        ]
+        : [
+            { key: 'fecha', label: 'Fecha' },
+            { key: 'propiedad', label: 'Propiedad' },
+            { key: 'tipo_propiedad', label: 'Tipo' },
+            { key: 'inquilino', label: 'Inquilino' },
+            { key: 'dni', label: 'DNI' },
+            { key: 'descripcion', label: 'Descripción' },
+            { key: 'debito', label: 'Débito' },
+            { key: 'credito', label: 'Crédito' },
+            { key: 'saldo', label: 'Saldo' }
+        ];
+    
+    // Generar encabezados
+    encabezados.innerHTML = columnas.map(col => `<th>${col.label}</th>`).join('');
+    
+    // Generar filas de datos
+    tbody.innerHTML = datos.map(row => `
+        <tr>
+            ${columnas.map(col => {
+                let valor = row[col.key];
+                if (typeof valor === 'number') {
+                    if (col.key.startsWith('total') || col.key === 'debito' || col.key === 'credito' || col.key === 'saldo') {
+                        valor = `$${valor.toFixed(2)}`;
+                    }
+                }
+                return `<td>${valor}</td>`;
+            }).join('')}
+        </tr>
+    `).join('');
+}
+</script>
+{% endblock %}

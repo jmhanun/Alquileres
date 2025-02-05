@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Importar Datos</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-body">
+                <form id="importForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="tipo" class="form-label">Tipo de Datos</label>
+                        <select class="form-control" id="tipo" name="tipo" required>
+                            <option value="">Seleccione tipo de datos...</option>
+                            <option value="inquilinos">Inquilinos</option>
+                            <option value="propiedades">Propiedades</option>
+                            <option value="facturas">Facturas</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Archivo CSV</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Formato esperado del CSV:</h5>
+                        <div id="formatoInquilinos" class="formato-csv d-none">
+                            <p><strong>Para Inquilinos:</strong></p>
+                            <code>nombre,email,telefono</code>
+                            <p class="text-muted small">Ejemplo: Juan Pérez,juan@email.com,1234567890</p>
+                        </div>
+
+                        <div id="formatoPropiedades" class="formato-csv d-none">
+                            <p><strong>Para Propiedades:</strong></p>
+                            <code>direccion,tipo,propietario,email_propietario</code>
+                            <p class="text-muted small">Ejemplo: Av. Principal 123,Casa,Ana García,ana@email.com</p>
+                        </div>
+
+                        <div id="formatoFacturas" class="formato-csv d-none">
+                            <p><strong>Para Facturas:</strong></p>
+                            <code>contrato_id,fecha_emision,monto,pagado,fecha_pago</code>
+                            <p class="text-muted small">Ejemplo: 1,2024-02-01,15000,true,2024-02-05</p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload"></i> Importar Datos
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('tipo').addEventListener('change', function() {
+    // Ocultar todos los formatos
+    document.querySelectorAll('.formato-csv').forEach(el => el.classList.add('d-none'));
+    
+    // Mostrar el formato correspondiente
+    const tipo = this.value;
+    if (tipo) {
+        document.getElementById('formato' + tipo.charAt(0).toUpperCase() + tipo.slice(1)).classList.remove('d-none');
+    }
+});
+
+document.getElementById('importForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    try {
+        const response = await fetch('/api/importar', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            alert('Importación exitosa: ' + result.message);
+            this.reset();
+            document.querySelectorAll('.formato-csv').forEach(el => el.classList.add('d-none'));
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        alert('Error al procesar la importación');
+        console.error('Error:', error);
+    }
+});
+</script>
+{% endblock %}

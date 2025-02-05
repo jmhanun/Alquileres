@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 text-center mb-4">
+        <h1>Bienvenido al Sistema de Gestión de Alquileres</h1>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-receipt fs-1"></i>
+                <h5 class="card-title">Facturas</h5>
+                <p class="card-text">Gestiona las facturas de los alquileres</p>
+                <a href="{{ url_for('facturas') }}" class="btn btn-primary">Ver Facturas</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-house-door fs-1"></i>
+                <h5 class="card-title">Propiedades</h5>
+                <p class="card-text">Administra las propiedades en alquiler</p>
+                <a href="{{ url_for('propiedades') }}" class="btn btn-primary">Ver Propiedades</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-people fs-1"></i>
+                <h5 class="card-title">Inquilinos</h5>
+                <p class="card-text">Gestiona la información de inquilinos</p>
+                <a href="{{ url_for('inquilinos') }}" class="btn btn-primary">Ver Inquilinos</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up fs-1"></i>
+                <h5 class="card-title">Reportes</h5>
+                <p class="card-text">Visualiza reportes de facturación</p>
+                <a href="{{ url_for('reportes') }}" class="btn btn-primary">Ver Reportes</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Reporte Rápido de Facturación</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="fecha_inicio">Fecha Inicio:</label>
+                            <input type="date" class="form-control" id="fecha_inicio" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="fecha_fin">Fecha Fin:</label>
+                            <input type="date" class="form-control" id="fecha_fin" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="tipo_reporte">Tipo de Reporte:</label>
+                            <select class="form-control" id="tipo_reporte" required>
+                                <option value="inquilino">Por Inquilino</option>
+                                <option value="propiedad">Por Propiedad</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <button class="btn btn-primary" onclick="generarReporte()">
+                            <i class="bi bi-graph-up"></i> Generar Reporte
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="tabla-reporte">
+                                <thead>
+                                    <tr id="encabezados-reporte">
+                                        <!-- Los encabezados se generarán dinámicamente -->
+                                    </tr>
+                                </thead>
+                                <tbody id="datos-reporte">
+                                    <!-- Los datos se generarán dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function generarReporte() {
+    const fecha_inicio = document.getElementById('fecha_inicio').value;
+    const fecha_fin = document.getElementById('fecha_fin').value;
+    const tipo_reporte = document.getElementById('tipo_reporte').value;
+
+    if (!fecha_inicio || !fecha_fin) {
+        alert('Por favor, seleccione las fechas del reporte');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/reporte-facturacion', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                fecha_inicio,
+                fecha_fin,
+                tipo: tipo_reporte
+            })
+        });
+
+        const datos = await response.json();
+        mostrarReporte(datos, tipo_reporte);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al generar el reporte');
+    }
+}
+
+function mostrarReporte(datos, tipo) {
+    const encabezados = document.getElementById('encabezados-reporte');
+    const tbody = document.getElementById('datos-reporte');
+    
+    // Definir encabezados según el tipo de reporte
+    const columnas = tipo === 'inquilino' 
+        ? [
+            { key: 'nombre', label: 'Inquilino' },
+            { key: 'cantidad_facturas', label: 'Cantidad Facturas' },
+            { key: 'total_facturado', label: 'Total Facturado' },
+            { key: 'total_pagado', label: 'Total Pagado' },
+            { key: 'total_pendiente', label: 'Total Pendiente' }
+        ]
+        : [
+            { key: 'direccion', label: 'Dirección' },
+            { key: 'tipo', label: 'Tipo' },
+            { key: 'cantidad_facturas', label: 'Cantidad Facturas' },
+            { key: 'total_facturado', label: 'Total Facturado' },
+            { key: 'total_pagado', label: 'Total Pagado' },
+            { key: 'total_pendiente', label: 'Total Pendiente' }
+        ];
+
+    // Generar encabezados
+    encabezados.innerHTML = columnas.map(col => 
+        `<th>${col.label}</th>`
+    ).join('');
+
+    // Generar filas de datos
+    tbody.innerHTML = datos.map(item => `
+        <tr>
+            ${columnas.map(col => {
+                const valor = item[col.key];
+                return col.key.includes('total') 
+                    ? `<td>$${valor.toFixed(2)}</td>`
+                    : `<td>${valor}</td>`;
+            }).join('')}
+        </tr>
+    `).join('');
+
+    // Agregar fila de totales
+    const totales = datos.reduce((acc, item) => ({
+        cantidad_facturas: acc.cantidad_facturas + item.cantidad_facturas,
+        total_facturado: acc.total_facturado + item.total_facturado,
+        total_pagado: acc.total_pagado + item.total_pagado,
+        total_pendiente: acc.total_pendiente + item.total_pendiente
+    }), {
+        cantidad_facturas: 0,
+        total_facturado: 0,
+        total_pagado: 0,
+        total_pendiente: 0
+    });
+
+    tbody.innerHTML += `
+        <tr class="table-info fw-bold">
+            <td colspan="${tipo === 'inquilino' ? 1 : 2}">TOTALES</td>
+            <td>${totales.cantidad_facturas}</td>
+            <td>$${totales.total_facturado.toFixed(2)}</td>
+            <td>$${totales.total_pagado.toFixed(2)}</td>
+            <td>$${totales.total_pendiente.toFixed(2)}</td>
+        </tr>
+    `;
+}
+</script>
+{% endblock %}

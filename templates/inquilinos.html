@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Inquilinos</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevoInquilinoModal">
+            <i class="bi bi-plus-circle"></i> Nuevo Inquilino
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    {% for inquilino in inquilinos %}
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ inquilino.nombre }}</h5>
+                <p class="card-text">
+                    <i class="bi bi-person-vcard"></i> {{ inquilino.dni }}<br>
+                    <i class="bi bi-envelope"></i> {{ inquilino.email }}<br>
+                    <i class="bi bi-telephone"></i> {{ inquilino.telefono }}<br>
+                    <strong>Contratos activos:</strong> {{ inquilino.contratos_list|length }}
+                </p>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-info" title="Ver detalles">
+                        <i class="bi bi-eye"></i> Detalles
+                    </button>
+                    <button class="btn btn-sm btn-warning" title="Editar" onclick="editarInquilino({{ inquilino.id }})">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    <button class="btn btn-sm btn-danger" title="Eliminar" onclick="eliminarInquilino({{ inquilino.id }})">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center">
+        <p>No hay inquilinos registrados</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal Nuevo Inquilino -->
+<div class="modal fade" id="nuevoInquilinoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nuevo Inquilino</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="nuevoInquilinoForm">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dni" class="form-label">DNI</label>
+                        <input type="text" class="form-control" id="dni" name="dni" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="telefono" class="form-label">Teléfono</label>
+                        <input type="tel" class="form-control" id="telefono" name="telefono">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="crearInquilino()">Crear Inquilino</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Inquilino -->
+<div class="modal fade" id="editarInquilinoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Inquilino</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editarInquilinoForm">
+                    <input type="hidden" id="editar_id">
+                    <div class="mb-3">
+                        <label for="editar_nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="editar_nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_dni" class="form-label">DNI</label>
+                        <input type="text" class="form-control" id="editar_dni" name="dni" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="editar_email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_telefono" class="form-label">Teléfono</label>
+                        <input type="tel" class="form-control" id="editar_telefono" name="telefono">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="actualizarInquilino()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function crearInquilino() {
+    const formData = {
+        nombre: document.getElementById('nombre').value,
+        dni: document.getElementById('dni').value,
+        email: document.getElementById('email').value,
+        telefono: document.getElementById('telefono').value
+    };
+
+    enviarDatos('/api/inquilinos', formData);
+}
+
+async function editarInquilino(id) {
+    try {
+        const response = await fetch(`/api/inquilinos/${id}`);
+        const data = await response.json();
+        
+        document.getElementById('editar_id').value = id;
+        document.getElementById('editar_nombre').value = data.nombre;
+        document.getElementById('editar_dni').value = data.dni;
+        document.getElementById('editar_email').value = data.email;
+        document.getElementById('editar_telefono').value = data.telefono || '';
+        
+        new bootstrap.Modal(document.getElementById('editarInquilinoModal')).show();
+    } catch (error) {
+        mostrarMensaje('Error al cargar los datos del inquilino', 'error');
+    }
+}
+
+async function actualizarInquilino() {
+    const id = document.getElementById('editar_id').value;
+    const formData = {
+        nombre: document.getElementById('editar_nombre').value,
+        dni: document.getElementById('editar_dni').value,
+        email: document.getElementById('editar_email').value,
+        telefono: document.getElementById('editar_telefono').value
+    };
+
+    try {
+        const response = await fetch(`/api/inquilinos/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            mostrarMensaje(data.message, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('editarInquilinoModal')).hide();
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            mostrarMensaje(data.error, 'error');
+        }
+    } catch (error) {
+        mostrarMensaje('Error al actualizar el inquilino', 'error');
+    }
+}
+
+async function eliminarInquilino(id) {
+    if (!confirm('¿Está seguro de que desea eliminar este inquilino?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/inquilinos/${id}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            mostrarMensaje(data.message, 'success');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            mostrarMensaje(data.error, 'error');
+        }
+    } catch (error) {
+        mostrarMensaje('Error al eliminar el inquilino', 'error');
+    }
+}
+</script>
+{% endblock %}

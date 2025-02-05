@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Propiedades</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevaPropiedadModal">
+            <i class="bi bi-plus-circle"></i> Nueva Propiedad
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    {% for propiedad in propiedades %}
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ propiedad.direccion }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{ propiedad.tipo }}</h6>
+                <p class="card-text">
+                    <strong>Propietario:</strong> {{ propiedad.propietario.nombre }}<br>
+                    <strong>Contratos activos:</strong> {{ propiedad.contratos_list|length }}
+                </p>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-info" title="Ver detalles">
+                        <i class="bi bi-eye"></i> Detalles
+                    </button>
+                    <button class="btn btn-sm btn-warning" title="Editar" onclick="editarPropiedad({{ propiedad.id }})">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    <button class="btn btn-sm btn-danger" title="Eliminar" onclick="eliminarPropiedad({{ propiedad.id }})">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center">
+        <p>No hay propiedades registradas</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal Nueva Propiedad -->
+<div class="modal fade" id="nuevaPropiedadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nueva Propiedad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="nuevaPropiedadForm">
+                    <div class="mb-3">
+                        <label for="direccion" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="direccion" name="direccion" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipo" class="form-label">Tipo de Propiedad</label>
+                        <select class="form-control" id="tipo" name="tipo" required>
+                            <option value="">Seleccione tipo...</option>
+                            <option value="Casa">Casa</option>
+                            <option value="Departamento">Departamento</option>
+                            <option value="Local">Local Comercial</option>
+                            <option value="Oficina">Oficina</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="propietario_nombre" class="form-label">Nombre del Propietario</label>
+                        <input type="text" class="form-control" id="propietario_nombre" name="propietario_nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="propietario_email" class="form-label">Email del Propietario</label>
+                        <input type="email" class="form-control" id="propietario_email" name="propietario_email" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="crearPropiedad()">Crear Propiedad</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Propiedad -->
+<div class="modal fade" id="editarPropiedadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Propiedad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editarPropiedadForm">
+                    <input type="hidden" id="editar_id">
+                    <div class="mb-3">
+                        <label for="editar_direccion" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="editar_direccion" name="direccion" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_tipo" class="form-label">Tipo de Propiedad</label>
+                        <select class="form-control" id="editar_tipo" name="tipo" required>
+                            <option value="">Seleccione tipo...</option>
+                            <option value="Casa">Casa</option>
+                            <option value="Departamento">Departamento</option>
+                            <option value="Local">Local Comercial</option>
+                            <option value="Oficina">Oficina</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_propietario_nombre" class="form-label">Nombre del Propietario</label>
+                        <input type="text" class="form-control" id="editar_propietario_nombre" name="propietario_nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_propietario_email" class="form-label">Email del Propietario</label>
+                        <input type="email" class="form-control" id="editar_propietario_email" name="propietario_email" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="actualizarPropiedad()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function crearPropiedad() {
+    const formData = {
+        direccion: document.getElementById('direccion').value,
+        tipo: document.getElementById('tipo').value,
+        propietario_nombre: document.getElementById('propietario_nombre').value,
+        propietario_email: document.getElementById('propietario_email').value
+    };
+
+    enviarDatos('/api/propiedades', formData);
+}
+
+async function editarPropiedad(id) {
+    try {
+        const response = await fetch(`/api/propiedades/${id}`);
+        const data = await response.json();
+        
+        document.getElementById('editar_id').value = id;
+        document.getElementById('editar_direccion').value = data.direccion;
+        document.getElementById('editar_tipo').value = data.tipo;
+        document.getElementById('editar_propietario_nombre').value = data.propietario_nombre;
+        document.getElementById('editar_propietario_email').value = data.propietario_email;
+        
+        new bootstrap.Modal(document.getElementById('editarPropiedadModal')).show();
+    } catch (error) {
+        mostrarMensaje('Error al cargar los datos de la propiedad', 'error');
+    }
+}
+
+async function actualizarPropiedad() {
+    const id = document.getElementById('editar_id').value;
+    const formData = {
+        direccion: document.getElementById('editar_direccion').value,
+        tipo: document.getElementById('editar_tipo').value,
+        propietario_nombre: document.getElementById('editar_propietario_nombre').value,
+        propietario_email: document.getElementById('editar_propietario_email').value
+    };
+
+    try {
+        const response = await fetch(`/api/propiedades/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            mostrarMensaje(data.message, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('editarPropiedadModal')).hide();
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            mostrarMensaje(data.error, 'error');
+        }
+    } catch (error) {
+        mostrarMensaje('Error al actualizar la propiedad', 'error');
+    }
+}
+
+async function eliminarPropiedad(id) {
+    if (!confirm('¿Está seguro de que desea eliminar esta propiedad?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/propiedades/${id}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            mostrarMensaje(data.message, 'success');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            mostrarMensaje(data.error, 'error');
+        }
+    } catch (error) {
+        mostrarMensaje('Error al eliminar la propiedad', 'error');
+    }
+}
+</script>
+{% endblock %}
