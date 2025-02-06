@@ -6,6 +6,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+### Added
+- Agregada documentación sobre tests y cobertura en el README
+- Creado archivo TODO.md con lista de mejoras planificadas
+  - Importación/exportación de datos vía CSV
+  - Sistema de sugerencia de precios para facturas
+  - Otras mejoras de UI/UX y funcionalidad
+
 ### Fixed
 - Corregida la configuración de la base de datos SQLite
   - Uso de rutas absolutas para el archivo de base de datos
@@ -22,12 +29,6 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Optimizado el cálculo de totales mensuales usando `func.coalesce`
 - Actualizada la forma de obtener los años disponibles para el reporte anual
 - Mejorada la validación de fechas en los formularios
-
-### Added
-- Creado archivo TODO.md con lista de mejoras planificadas
-  - Importación/exportación de datos vía CSV
-  - Sistema de sugerencia de precios para facturas
-  - Otras mejoras de UI/UX y funcionalidad
 
 ## [1.2.5] - 2025-02-04
 

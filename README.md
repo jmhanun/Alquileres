@@ -12,8 +12,8 @@ Sistema web para la gestión de alquileres, propiedades, inquilinos y propietari
 
 1. Clonar el repositorio:
 ```bash
-git clone https://github.com/tuusuario/sistema-alquileres.git
-cd sistema-alquileres
+git clone https://github.com/jmhanun/Alquileres.git
+cd Alquileres
 ```
 
 2. Crear y activar el entorno virtual:
@@ -102,6 +102,20 @@ El sistema utiliza SQLite como base de datos por defecto. Las tablas principales
 ## Mejoras Planificadas
 
 Para ver la lista completa de mejoras planificadas y características pendientes, consulte el archivo [TODO.md](TODO.md).
+
+## Tests y Cobertura
+
+El proyecto cuenta con una suite de tests unitarios que cubren los modelos y las rutas principales:
+
+```bash
+python -m pytest
+```
+
+Cobertura actual:
+- Total: 56% del código
+- Modelos: 100% de cobertura
+- Vistas: Entre 31% y 100% de cobertura
+- Formularios: Entre 58% y 100% de cobertura
 
 ## Versiones de Dependencias Principales
 
