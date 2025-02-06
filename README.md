@@ -1,130 +1,128 @@
 # Sistema de Gestión de Alquileres
 
-Sistema web para la gestión de alquileres de propiedades, incluyendo inquilinos, propiedades, contratos y facturación.
+Sistema web para la gestión de alquileres, propiedades, inquilinos y propietarios.
 
-## Características
+## Requisitos
 
-- Gestión de Inquilinos
-  - Registro de datos personales incluyendo DNI
-  - Historial de contratos
-  - Seguimiento de pagos
-  - Validación de DNI y email únicos
-
-- Gestión de Propiedades
-  - Registro de propiedades con tipo y características
-  - Historial de inquilinos
-  - Estado de ocupación
-  - Asociación con propietarios
-
-- Gestión de Contratos
-  - Vinculación inquilino-propiedad
-  - Fechas de inicio y fin
-  - Monto mensual
-  - Estado del contrato
-
-- Facturación
-  - Generación automática de facturas mensuales
-  - Registro de pagos
-  - Estado de cuenta por inquilino
-
-- Reportes
-  - Reporte contable anual con movimientos detallados
-  - Reporte por inquilino con DNI
-  - Reporte por propiedad
-  - Exportación a CSV
-  - Filtrado por fechas y tipo de reporte
-
-## Tecnologías Utilizadas
-
-- Backend: Python con Flask
-- Base de datos: SQLite con SQLAlchemy
-- Frontend: HTML, CSS (Bootstrap), JavaScript
-- Reportes: Pandas para exportación CSV
-- Testing: pytest, pytest-cov para cobertura de código
+- Python 3.9+
+- pip
+- virtualenv
 
 ## Instalación
 
 1. Clonar el repositorio:
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/tuusuario/sistema-alquileres.git
 cd sistema-alquileres
 ```
 
-2. Crear y activar entorno virtual:
+2. Crear y activar el entorno virtual:
 ```bash
 python -m venv venv
 source venv/bin/activate  # En Windows: venv\Scripts\activate
 ```
 
-3. Instalar dependencias:
+3. Instalar las dependencias:
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Inicializar la base de datos:
+4. Configurar las variables de entorno:
 ```bash
-python app.py
+cp .env.example .env
 ```
+Edita el archivo `.env` con tus configuraciones.
 
-## Testing
+## Configuración de la Base de Datos
 
-1. Ejecutar los tests:
+La base de datos se inicializa automáticamente en el directorio raíz del proyecto. Para configurar la base de datos:
+
+1. Inicializar la base de datos:
 ```bash
-python -m pytest
+flask db upgrade
 ```
 
-2. Ejecutar los tests con reporte de cobertura:
+## Ejecución
+
+1. Activar el entorno virtual (si no está activado):
 ```bash
-python -m pytest --cov=app tests/
+source venv/bin/activate  # En Windows: venv\Scripts\activate
 ```
 
-Los tests incluyen:
-- Tests unitarios para modelos (Inquilino, Propiedad, Contrato, Factura)
-- Tests de integración para rutas de la API
-- Validación de restricciones únicas (DNI, email)
-- Tests de reportes y facturación
-
-## Uso
-
-1. Iniciar el servidor:
+2. Establecer la variable de entorno FLASK_APP:
 ```bash
-python app.py
+export FLASK_APP=run.py  # En Windows: set FLASK_APP=run.py
 ```
 
-2. Abrir en el navegador:
+3. (Opcional) Activar el modo desarrollo:
+```bash
+export FLASK_ENV=development  # En Windows: set FLASK_ENV=development
 ```
-http://localhost:5000
+
+4. Ejecutar el servidor:
+```bash
+flask run
 ```
+
+La aplicación estará disponible en `http://127.0.0.1:5000/`
 
 ## Estructura del Proyecto
 
 ```
 sistema-alquileres/
-├── app.py              # Aplicación principal
-├── requirements.txt    # Dependencias
-├── templates/         # Plantillas HTML
-├── static/           # Archivos estáticos
-└── tests/           # Suite de tests
-    ├── unit/       # Tests unitarios
-    └── integration/ # Tests de integración
+├── app/
+│   ├── __init__.py
+│   ├── models/
+│   ├── routes/
+│   ├── templates/
+│   └── static/
+├── migrations/
+├── instance/
+├── tests/
+├── config.py
+├── requirements.txt
+└── run.py
 ```
 
-## Contribución
+## Base de Datos
 
-1. Fork el proyecto
-2. Crear una rama para su feature (`git checkout -b feature/AmazingFeature`)
-3. Commit sus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir un Pull Request
+El sistema utiliza SQLite como base de datos por defecto. Las tablas principales son:
 
-## Versionado
+- `user`: Usuarios del sistema
+- `propietarios`: Propietarios de inmuebles
+- `inquilinos`: Inquilinos de las propiedades
+- `propiedades`: Propiedades disponibles
+- `contratos`: Contratos de alquiler
+- `facturas`: Facturas y pagos
 
-Usamos [SemVer](http://semver.org/) para el versionado. Para ver las versiones disponibles, vea las [etiquetas en este repositorio](https://github.com/your/project/tags).
+## Desarrollo
 
-## Autores
+Para contribuir al proyecto:
 
-* **Juan Manuel Hanun** - *Trabajo inicial*
+1. Crear una nueva rama para tu feature:
+```bash
+git checkout -b feature/nueva-funcionalidad
+```
+
+2. Realizar cambios y commits
+3. Crear un pull request
+
+### Migraciones de Base de Datos
+
+Para crear una nueva migración:
+```bash
+flask db migrate -m "descripción de los cambios"
+```
+
+Para aplicar las migraciones:
+```bash
+flask db upgrade
+```
+
+## Changelog
+
+Ver [CHANGELOG.md](CHANGELOG.md) para el historial de cambios.
 
 ## Licencia
 
-Este proyecto está licenciado bajo la Licencia MIT - vea el archivo [LICENSE.md](LICENSE.md) para más detalles.
+Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
