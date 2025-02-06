@@ -7,6 +7,7 @@ __pycache__/
 venv/
 env/
 ENV/
+.env
 
 # Coverage
 .coverage
@@ -14,13 +15,34 @@ htmlcov/
 
 # SQLite
 *.db
+*.sqlite3
 
 # IDE
 .vscode/
 .idea/
 
-# Pytest
-.pytest_cache/
+# Instance folder
+instance/
 
-# Backup files
-*.backup
+# Logs
+*.log
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/

@@ -1,0 +1,70 @@
+import os
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
+from config import config
+
+# Inicialización de extensiones
+db = SQLAlchemy()
+migrate = Migrate()
+login_manager = LoginManager()
+csrf = CSRFProtect()
+login_manager.login_view = 'auth.login'
+login_manager.login_message = 'Por favor inicie sesión para acceder a esta página.'
+
+def create_app(config_name='default'):
+    app = Flask(__name__)
+    
+    # Configuración
+    app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
+    
+    # Ensure the instance folder exists
+    try:
+        os.makedirs(app.instance_path)
+    except OSError:
+        pass
+    
+    # Inicializar extensiones
+    db.init_app(app)
+    migrate.init_app(app, db)
+    login_manager.init_app(app)
+    csrf.init_app(app)
+    
+    # Configurar logging
+    if not app.debug and not app.testing:
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+        file_handler = RotatingFileHandler('logs/alquileres.log',
+                                         maxBytes=10240, backupCount=10)
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s '
+            '[in %(pathname)s:%(lineno)d]'
+        ))
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+        app.logger.setLevel(logging.INFO)
+        app.logger.info('Inicialización del sistema de alquileres')
+    
+    # Registrar blueprints
+    from app.views import (
+        main_bp,
+        auth_bp,
+        propiedades_bp,
+        inquilinos_bp,
+        contratos_bp,
+        facturas_bp,
+        reportes_bp
+    )
+    
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(propiedades_bp, url_prefix='/propiedades')
+    app.register_blueprint(inquilinos_bp, url_prefix='/inquilinos')
+    app.register_blueprint(contratos_bp, url_prefix='/contratos')
+    app.register_blueprint(facturas_bp, url_prefix='/facturas')
+    app.register_blueprint(reportes_bp, url_prefix='/reportes')
+    
+    return app
