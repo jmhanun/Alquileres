@@ -99,6 +99,10 @@ El sistema utiliza SQLite como base de datos por defecto. Las tablas principales
 - `contratos`: Contratos de alquiler (fechas, monto mensual, depósito)
 - `facturas`: Facturas y pagos (fecha emisión, monto, estado de pago)
 
+## Mejoras Planificadas
+
+Para ver la lista completa de mejoras planificadas y características pendientes, consulte el archivo [TODO.md](TODO.md).
+
 ## Versiones de Dependencias Principales
 
 - Flask==2.3.3
