@@ -5,6 +5,9 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from config import config
+import logging
+from logging.handlers import RotatingFileHandler
+from datetime import datetime
 
 # Inicialización de extensiones
 db = SQLAlchemy()
@@ -13,6 +16,11 @@ login_manager = LoginManager()
 csrf = CSRFProtect()
 login_manager.login_view = 'auth.login'
 login_manager.login_message = 'Por favor inicie sesión para acceder a esta página.'
+
+@login_manager.user_loader
+def load_user(id):
+    from app.models import User
+    return User.query.get(int(id))
 
 def create_app(config_name='default'):
     app = Flask(__name__)
@@ -32,6 +40,11 @@ def create_app(config_name='default'):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     csrf.init_app(app)
+
+    # Añadir variables globales a los templates
+    @app.context_processor
+    def inject_now():
+        return {'now': datetime.utcnow()}
     
     # Configurar logging
     if not app.debug and not app.testing:

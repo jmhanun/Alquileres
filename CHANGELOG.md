@@ -95,24 +95,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [0.2.0] - 2025-02-06
 
-### Fixed
-- Corregido el problema con la inicialización de la base de datos
-- Solucionados los errores de migración
-- Ajustada la configuración de la base de datos SQLite
+### Añadido
+- Sistema de autenticación y autorización
+- Plantillas para login y registro
+- Context processor para variables globales en templates
 
-### Changed
-- Simplificada la configuración de la base de datos en `config.py`
-- Mejorada la estructura del proyecto para manejar migraciones
+### Cambiado
+- Actualizado Flask a versión 2.3.3 para compatibilidad
+- Actualizado Werkzeug a versión 2.3.7 para resolver problemas de hash
+- Mejorada la documentación con información de autenticación
 
-### Added
-- Inicialización correcta de la base de datos con todas las tablas necesarias
-- Índices optimizados para mejor rendimiento en consultas
-- Documentación actualizada para la configuración y ejecución del proyecto
+### Corregido
+- Solucionado error de hashlib.scrypt en Python 3.9
+- Corregido error de variable 'now' indefinida en templates
 
 ## [0.1.0] - 2025-02-05
 
-### Added
-- Implementación inicial del sistema de alquileres
-- Modelos básicos: Usuario, Propietario, Inquilino, Propiedad, Contrato, Factura
-- Sistema de autenticación
-- Configuración inicial del proyecto
+### Añadido
+- Estructura inicial del proyecto
+- Modelos de datos básicos
+- Configuración de base de datos SQLite
+- Sistema de migraciones
+- Documentación inicial

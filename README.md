@@ -42,6 +42,10 @@ La base de datos se inicializa automáticamente en el directorio raíz del proye
 flask db upgrade
 ```
 
+## Autenticación
+
+El sistema utiliza autenticación y autorización para proteger el acceso a las funcionalidades. Los usuarios pueden registrarse y iniciar sesión para acceder a la aplicación.
+
 ## Ejecución
 
 1. Activar el entorno virtual (si no está activado):
@@ -94,6 +98,15 @@ El sistema utiliza SQLite como base de datos por defecto. Las tablas principales
 - `propiedades`: Propiedades disponibles
 - `contratos`: Contratos de alquiler
 - `facturas`: Facturas y pagos
+
+## Versiones de Dependencias Principales
+
+- Flask==2.3.3
+- Flask-SQLAlchemy==3.1.1
+- Flask-Login==0.6.3
+- Flask-WTF==1.2.1
+- Werkzeug==2.3.7
+- SQLAlchemy==2.0.23
 
 ## Desarrollo
 
