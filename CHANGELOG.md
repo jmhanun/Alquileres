@@ -7,6 +7,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 ## [Unreleased]
 
 ### Added
+- Agregada documentación sobre manejo de base de datos en el README
+  - Instrucciones para reiniciar la base de datos
+  - Explicación del proceso de creación automática
 - Agregada documentación sobre tests y cobertura en el README
 - Creado archivo TODO.md con lista de mejoras planificadas
   - Importación/exportación de datos vía CSV

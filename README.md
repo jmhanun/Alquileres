@@ -90,7 +90,19 @@ sistema-alquileres/
 
 ## Base de Datos
 
-El sistema utiliza SQLite como base de datos por defecto. Las tablas principales son:
+El sistema utiliza SQLite como base de datos por defecto. La base de datos se crea automáticamente en `instance/app.db` cuando:
+
+1. Se inicia la aplicación por primera vez
+2. Se elimina la base de datos existente
+
+Para reiniciar la base de datos a un estado limpio:
+```bash
+rm -f instance/app.db
+```
+
+La próxima vez que se inicie la aplicación, se creará una nueva base de datos vacía.
+
+Las tablas principales son:
 
 - `user`: Usuarios del sistema
 - `propietarios`: Propietarios de inmuebles (nombre, dni, email, teléfono)
