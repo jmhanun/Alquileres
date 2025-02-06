@@ -20,12 +20,13 @@ class Propietario(db.Model):
     __tablename__ = 'propietarios'
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    telefono = db.Column(db.String(20))
+    dni = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    telefono = db.Column(db.String(20), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    propiedades = db.relationship('Propiedad', backref='propietario', lazy='dynamic',
+    propiedades = db.relationship('Propiedad', backref='propietario', lazy=True,
                                 cascade='all, delete-orphan')
 
 class Propiedad(db.Model):
@@ -33,6 +34,7 @@ class Propiedad(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     direccion = db.Column(db.String(200), nullable=False)
     tipo = db.Column(db.String(50), nullable=False)
+    ambientes = db.Column(db.Integer, nullable=False)
     descripcion = db.Column(db.Text)
     propietario_id = db.Column(db.Integer, db.ForeignKey('propietarios.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Detalles del Propietario</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Nombre:</strong> {{ propietario.nombre }}</p>
+                    <p><strong>DNI:</strong> {{ propietario.dni }}</p>
+                    <p><strong>Email:</strong> {{ propietario.email }}</p>
+                    <p><strong>Teléfono:</strong> {{ propietario.telefono }}</p>
+                </div>
+            </div>
+            <div class="mt-3">
+                <a href="{{ url_for('propietarios.editar', id=propietario.id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <a href="{{ url_for('propietarios.lista') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if propietario.propiedades %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Propiedades del Propietario</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Dirección</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for propiedad in propietario.propiedades %}
+                        <tr>
+                            <td>{{ propiedad.direccion }}</td>
+                            <td>{{ propiedad.tipo }}</td>
+                            <td>
+                                {% if propiedad.contratos and propiedad.contratos[-1].activo %}
+                                    <span class="badge bg-success">Alquilada</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Disponible</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('propiedades.ver', id=propiedad.id) }}" 
+                                   class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> Ver
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

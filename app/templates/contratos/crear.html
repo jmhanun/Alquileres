@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Contrato{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Crear Nuevo Contrato</h1>
+            <hr>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <form method="POST" action="{{ url_for('contratos.crear') }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.propiedad_id.label(class="form-label") }}
+                    {{ form.propiedad_id(class="form-select") }}
+                    {% for error in form.propiedad_id.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.inquilino_id.label(class="form-label") }}
+                    {{ form.inquilino_id(class="form-select") }}
+                    {% for error in form.inquilino_id.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.fecha_inicio.label(class="form-label") }}
+                    {{ form.fecha_inicio(class="form-control", type="date") }}
+                    {% for error in form.fecha_inicio.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.fecha_fin.label(class="form-label") }}
+                    {{ form.fecha_fin(class="form-control", type="date") }}
+                    {% for error in form.fecha_fin.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.monto_mensual.label(class="form-label") }}
+                    {{ form.monto_mensual(class="form-control") }}
+                    {% for error in form.monto_mensual.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.deposito.label(class="form-label") }}
+                    {{ form.deposito(class="form-control") }}
+                    {% for error in form.deposito.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.notas.label(class="form-label") }}
+                    {{ form.notas(class="form-control", rows=3) }}
+                    {% for error in form.notas.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.submit(class="btn btn-primary") }}
+                    <a href="{{ url_for('contratos.lista') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Información</h5>
+                </div>
+                <div class="card-body">
+                    <p>Complete todos los campos requeridos para crear un nuevo contrato.</p>
+                    <ul>
+                        <li>Seleccione la propiedad disponible</li>
+                        <li>Seleccione el inquilino</li>
+                        <li>Establezca las fechas de inicio y fin del contrato</li>
+                        <li>Defina el monto mensual y el depósito</li>
+                        <li>Agregue notas adicionales si es necesario</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Formatear campos numéricos
+    document.addEventListener('DOMContentLoaded', function() {
+        const montoInput = document.getElementById('monto_mensual');
+        const depositoInput = document.getElementById('deposito');
+
+        function formatNumber(input) {
+            input.addEventListener('blur', function() {
+                if (this.value) {
+                    const num = parseFloat(this.value.replace(/[^\d.-]/g, ''));
+                    if (!isNaN(num)) {
+                        this.value = num.toFixed(2);
+                    }
+                }
+            });
+        }
+
+        if (montoInput) formatNumber(montoInput);
+        if (depositoInput) formatNumber(depositoInput);
+    });
+</script>
+{% endblock %}

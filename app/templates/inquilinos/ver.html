@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Detalles del Inquilino</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Nombre:</strong> {{ inquilino.nombre }}</p>
+                    <p><strong>DNI:</strong> {{ inquilino.dni }}</p>
+                    <p><strong>Email:</strong> {{ inquilino.email }}</p>
+                    <p><strong>Teléfono:</strong> {{ inquilino.telefono }}</p>
+                </div>
+            </div>
+            <div class="mt-3">
+                <a href="{{ url_for('inquilinos.editar', id=inquilino.id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <a href="{{ url_for('inquilinos.lista') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

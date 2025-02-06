@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-file-invoice"></i> Reporte de Facturación</h2>
+        <div>
+            <a href="{{ url_for('facturas.generar_reporte') }}" class="btn btn-success">
+                <i class="fas fa-file-excel"></i> Exportar a Excel
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Mes</label>
+                    <input type="month" name="mes" class="form-control" value="{{ mes }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Facturado</h5>
+                    <h3>${{ "%.2f"|format(total_facturado) }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Cobrado</h5>
+                    <h3>${{ "%.2f"|format(total_cobrado) }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Pendiente</h5>
+                    <h3>${{ "%.2f"|format(total_pendiente) }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Detalle de Facturas</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Fecha Emisión</th>
+                            <th>Inquilino</th>
+                            <th>Propiedad</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                            <th>Fecha Pago</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for factura in facturas %}
+                        <tr>
+                            <td>{{ factura.fecha_emision.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ factura.contrato.inquilino.nombre }}</td>
+                            <td>{{ factura.contrato.propiedad.direccion }}</td>
+                            <td>${{ "%.2f"|format(factura.monto) }}</td>
+                            <td>
+                                {% if factura.pagado %}
+                                    <span class="badge bg-success">Pagada</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Pendiente</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if factura.fecha_pago %}
+                                    {{ factura.fecha_pago.strftime('%d/%m/%Y') }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('facturas.ver', id=factura.id) }}" 
+                                       class="btn btn-sm btn-info" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if not factura.pagado %}
+                                    <a href="{{ url_for('facturas.registrar_pago', id=factura.id) }}" 
+                                       class="btn btn-sm btn-success" title="Registrar pago"
+                                       onclick="return confirm('¿Está seguro de que desea registrar el pago de esta factura?')">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

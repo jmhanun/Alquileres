@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-file-invoice-dollar"></i> Facturas</h2>
+        <div>
+            <a href="{{ url_for('facturas.crear') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nueva Factura
+            </a>
+            <a href="{{ url_for('facturas.generar_reporte') }}" class="btn btn-success ms-2">
+                <i class="fas fa-file-excel"></i> Exportar
+            </a>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-3">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Estado</label>
+                        <select name="estado" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="pendiente" {% if request.args.get('estado') == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                            <option value="pagada" {% if request.args.get('estado') == 'pagada' %}selected{% endif %}>Pagada</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Mes</label>
+                        <input type="month" name="mes" class="form-control" value="{{ request.args.get('mes', '') }}">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Filtrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {% if facturas %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Fecha Emisión</th>
+                            <th>Inquilino</th>
+                            <th>Propiedad</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                            <th>Fecha Pago</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for factura in facturas %}
+                        <tr>
+                            <td>{{ factura.fecha_emision.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ factura.contrato.inquilino.nombre }}</td>
+                            <td>{{ factura.contrato.propiedad.direccion }}</td>
+                            <td>${{ "%.2f"|format(factura.monto) }}</td>
+                            <td>
+                                {% if factura.pagado %}
+                                    <span class="badge bg-success">Pagada</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Pendiente</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if factura.fecha_pago %}
+                                    {{ factura.fecha_pago.strftime('%d/%m/%Y') }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('facturas.ver', id=factura.id) }}" 
+                                       class="btn btn-sm btn-info" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if not factura.pagado %}
+                                        <a href="{{ url_for('facturas.editar', id=factura.id) }}" 
+                                           class="btn btn-sm btn-primary" title="Editar factura">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{{ url_for('facturas.registrar_pago', id=factura.id) }}" 
+                                           class="btn btn-sm btn-success" title="Registrar pago">
+                                            <i class="fas fa-money-bill-wave"></i>
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ url_for('facturas.anular_pago', id=factura.id) }}" 
+                                           class="btn btn-sm btn-danger" title="Anular pago">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                No se encontraron facturas con los filtros seleccionados.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

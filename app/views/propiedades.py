@@ -49,6 +49,12 @@ def editar(id):
     
     return render_template('propiedades/editar.html', form=form, propiedad=propiedad)
 
+@propiedades_bp.route('/ver/<int:id>')
+@login_required
+def ver(id):
+    propiedad = Propiedad.query.get_or_404(id)
+    return render_template('propiedades/ver.html', propiedad=propiedad)
+
 @propiedades_bp.route('/eliminar/<int:id>')
 @login_required
 def eliminar(id):

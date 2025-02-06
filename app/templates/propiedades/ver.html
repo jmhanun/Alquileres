@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Detalles de la Propiedad</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Dirección:</strong> {{ propiedad.direccion }}</p>
+                    <p><strong>Tipo:</strong> {{ propiedad.tipo }}</p>
+                    <p><strong>Descripción:</strong> {{ propiedad.descripcion }}</p>
+                    <p><strong>Propietario:</strong> {{ propiedad.propietario.nombre }}</p>
+                </div>
+            </div>
+            <div class="mt-3">
+                <a href="{{ url_for('propiedades.editar', id=propiedad.id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <a href="{{ url_for('propiedades.lista') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

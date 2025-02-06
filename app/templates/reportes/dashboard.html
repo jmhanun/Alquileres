@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-chart-bar"></i> Dashboard</h2>
+        <div>
+            <a href="{{ url_for('reportes.reporte_anual') }}" class="btn btn-primary">
+                <i class="fas fa-file-invoice-dollar"></i> Reporte Contable Anual
+            </a>
+            <a href="{{ url_for('reportes.facturacion') }}" class="btn btn-success ms-2">
+                <i class="fas fa-file-invoice"></i> Reporte de Facturación
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Resumen de Ingresos -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Ingresos del Mes</h5>
+                    <h3 class="mb-0">${{ "%.2f"|format(ingresos_mes) }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contratos Activos -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Contratos Activos</h5>
+                    <h3 class="mb-0">{{ contratos_activos }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Facturas Pendientes -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Facturas Pendientes</h5>
+                    <h3 class="mb-0">{{ facturas_pendientes }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Propiedades Disponibles -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Propiedades Disponibles</h5>
+                    <h3 class="mb-0">{{ propiedades_disponibles }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Gráfico de Ingresos -->
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Ingresos por Mes</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="ingresos-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado de Propiedades -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Estado de Propiedades</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="propiedades-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Contratos por Vencer -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Contratos por Vencer</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Propiedad</th>
+                                    <th>Inquilino</th>
+                                    <th>Vence</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for contrato in contratos_por_vencer %}
+                                <tr>
+                                    <td>{{ contrato.propiedad.direccion }}</td>
+                                    <td>{{ contrato.inquilino.nombre }}</td>
+                                    <td>{{ contrato.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Últimos Pagos -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Últimos Pagos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Inquilino</th>
+                                    <th>Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pago in ultimos_pagos %}
+                                <tr>
+                                    <td>{{ pago.fecha_pago.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ pago.contrato.inquilino.nombre }}</td>
+                                    <td>${{ "%.2f"|format(pago.monto) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Gráfico de Ingresos
+const ingresosCtx = document.getElementById('ingresos-chart').getContext('2d');
+new Chart(ingresosCtx, {
+    type: 'line',
+    data: {
+        labels: {{ labels_ingresos|tojson }},
+        datasets: [{
+            label: 'Ingresos Mensuales',
+            data: {{ datos_ingresos|tojson }},
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Gráfico de Estado de Propiedades
+const propiedadesCtx = document.getElementById('propiedades-chart').getContext('2d');
+new Chart(propiedadesCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Alquiladas', 'Disponibles'],
+        datasets: [{
+            data: [{{ propiedades_alquiladas }}, {{ propiedades_disponibles }}],
+            backgroundColor: ['rgb(75, 192, 192)', 'rgb(255, 205, 86)']
+        }]
+    },
+    options: {
+        responsive: true
+    }
+});
+</script>
+{% endblock %}

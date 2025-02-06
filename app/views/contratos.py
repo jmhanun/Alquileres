@@ -69,6 +69,12 @@ def editar(id):
     
     return render_template('contratos/editar.html', form=form, contrato=contrato)
 
+@contratos_bp.route('/ver/<int:id>')
+@login_required
+def ver(id):
+    contrato = Contrato.query.get_or_404(id)
+    return render_template('contratos/ver.html', contrato=contrato)
+
 @contratos_bp.route('/finalizar/<int:id>')
 @login_required
 def finalizar(id):

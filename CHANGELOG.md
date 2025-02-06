@@ -4,6 +4,19 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Corregido el error en el reporte anual relacionado con la conversión de fechas
+- Actualizado el manejo de años en el selector del reporte anual
+- Corregidos los tests para incluir el campo DNI requerido en Propietario
+- Mejorado el manejo de valores nulos en las consultas de facturas
+
+### Changed
+- Optimizado el cálculo de totales mensuales usando `func.coalesce`
+- Actualizada la forma de obtener los años disponibles para el reporte anual
+- Mejorada la validación de fechas en los formularios
+
 ## [1.2.5] - 2025-02-04
 
 ### Corregido

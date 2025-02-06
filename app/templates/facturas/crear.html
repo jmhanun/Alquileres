@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Factura{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Crear Nueva Factura</h1>
+            <hr>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <form method="POST" action="{{ url_for('facturas.crear') }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.contrato_id.label(class="form-label") }}
+                    {{ form.contrato_id(class="form-select") }}
+                    {% for error in form.contrato_id.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.fecha_emision.label(class="form-label") }}
+                    {{ form.fecha_emision(class="form-control", type="date") }}
+                    {% for error in form.fecha_emision.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.monto.label(class="form-label") }}
+                    {{ form.monto(class="form-control") }}
+                    {% for error in form.monto.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.submit(class="btn btn-primary") }}
+                    <a href="{{ url_for('facturas.lista') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Información</h5>
+                </div>
+                <div class="card-body">
+                    <p>Complete todos los campos requeridos para crear una nueva factura.</p>
+                    <ul>
+                        <li>Seleccione el contrato activo</li>
+                        <li>Establezca la fecha de emisión</li>
+                        <li>Ingrese el monto a facturar</li>
+                    </ul>
+                    
+                    <hr>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Las facturas se crean en estado "Pendiente" por defecto.
+                        Puede registrar el pago más tarde desde la lista de facturas.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Formatear campos numéricos
+    document.addEventListener('DOMContentLoaded', function() {
+        const montoInput = document.getElementById('monto');
+
+        if (montoInput) {
+            montoInput.addEventListener('blur', function() {
+                if (this.value) {
+                    const num = parseFloat(this.value.replace(/[^\d.-]/g, ''));
+                    if (!isNaN(num)) {
+                        this.value = num.toFixed(2);
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

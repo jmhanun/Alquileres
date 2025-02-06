@@ -68,3 +68,9 @@ def eliminar(id):
     db.session.commit()
     flash('Inquilino eliminado exitosamente.')
     return redirect(url_for('inquilinos.lista'))
+
+@inquilinos_bp.route('/ver/<int:id>')
+@login_required
+def ver(id):
+    inquilino = Inquilino.query.get_or_404(id)
+    return render_template('inquilinos/ver.html', inquilino=inquilino)

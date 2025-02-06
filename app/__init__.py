@@ -62,22 +62,22 @@ def create_app(config_name='default'):
         app.logger.info('Inicialización del sistema de alquileres')
     
     # Registrar blueprints
-    from app.views import (
-        main_bp,
-        auth_bp,
-        propiedades_bp,
-        inquilinos_bp,
-        contratos_bp,
-        facturas_bp,
-        reportes_bp
-    )
+    from app.views.main import main_bp
+    from app.views.auth import auth_bp
+    from app.views.propiedades import propiedades_bp
+    from app.views.inquilinos import inquilinos_bp
+    from app.views.contratos import contratos_bp
+    from app.views.facturas import facturas_bp
+    from app.views.reportes import reportes_bp
+    from app.views.propietarios import propietarios_bp
     
-    app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(main_bp)
     app.register_blueprint(propiedades_bp, url_prefix='/propiedades')
     app.register_blueprint(inquilinos_bp, url_prefix='/inquilinos')
     app.register_blueprint(contratos_bp, url_prefix='/contratos')
     app.register_blueprint(facturas_bp, url_prefix='/facturas')
     app.register_blueprint(reportes_bp, url_prefix='/reportes')
+    app.register_blueprint(propietarios_bp, url_prefix='/propietarios')
     
     return app

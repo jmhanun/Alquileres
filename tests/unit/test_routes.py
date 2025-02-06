@@ -1,10 +1,29 @@
 import pytest
 import json
 from datetime import datetime, timedelta
-from app import app, db, Inquilino, Propiedad, Contrato, Factura, Propietario
+from flask import url_for
+from app import create_app, db
+from app.models import User, Inquilino, Propiedad, Contrato, Factura, Propietario
+from datetime import date
+
+@pytest.fixture
+def app():
+    app = create_app('testing')
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    app.config['TESTING'] = True
+    app.config['WTF_CSRF_ENABLED'] = False
+    return app
+
+@pytest.fixture
+def client(app):
+    return app.test_client()
+
+@pytest.fixture
+def runner(app):
+    return app.test_cli_runner()
 
 @pytest.fixture(autouse=True)
-def clean_db():
+def clean_db(app):
     with app.app_context():
         db.session.remove()
         db.drop_all()
@@ -14,55 +33,65 @@ def clean_db():
         db.drop_all()
 
 @pytest.fixture
-def client():
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-    app.config['TESTING'] = True
+def auth_client(app, client):
+    with app.app_context():
+        user = User(username='test', email='test@test.com')
+        user.set_password('test123456')
+        db.session.add(user)
+        db.session.commit()
     
-    with app.test_client() as client:
-        yield client
+    client.post('/auth/login', data={
+        'username': 'test',
+        'password': 'test123456'
+    }, follow_redirects=True)
+    return client
 
-def test_crear_inquilino(client):
-    data = {
-        'nombre': 'Juan Perez',  # Sin tilde para evitar problemas de codificación
-        'dni': '12345678',
-        'email': 'juan@test.com',
-        'telefono': '1234567890'
-    }
-    response = client.post('/api/inquilinos',
-                         data=json.dumps(data),
-                         content_type='application/json')
-    print(f"Response data: {response.data}")  # Agregar logging
-    assert response.status_code == 201
-    response_data = json.loads(response.data)
-    assert response_data['inquilino']['nombre'] == 'Juan Perez'
+def test_index_redirect(client):
+    response = client.get('/')
+    assert response.status_code == 302
+    assert '/auth/login' in response.headers['Location']
 
-def test_crear_propiedad(client):
-    # Primero crear un propietario
-    propietario_data = {
-        'nombre': 'Ana García',
-        'email': 'ana@test.com'
-    }
-    response_propietario = client.post('/api/propietarios',
-                                    data=json.dumps(propietario_data),
-                                    content_type='application/json')
-    assert response_propietario.status_code == 201
-    propietario_id = json.loads(response_propietario.data)['id']
+def test_login(client):
+    with client.application.app_context():
+        user = User(username='test', email='test@test.com')
+        user.set_password('test123456')
+        db.session.add(user)
+        db.session.commit()
     
-    # Luego crear la propiedad
-    data = {
-        'direccion': 'Av. Test 123',
-        'tipo': 'Casa',
-        'propietario_id': propietario_id
-    }
-    response = client.post('/api/propiedades',
-                         data=json.dumps(data),
-                         content_type='application/json')
-    assert response.status_code == 201
-    response_data = json.loads(response.data)
-    assert response_data['propiedad']['direccion'] == 'Av. Test 123'
+    response = client.post('/auth/login', data={
+        'username': 'test',
+        'password': 'test123456'
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Dashboard' in response.data
 
-def test_reporte_facturacion_contable(client):
-    # Crear datos de prueba
+def test_propiedades_lista(auth_client, app):
+    with app.app_context():
+        # Crear un propietario
+        propietario = Propietario(
+            nombre='Ana García',
+            email='ana@test.com',
+            telefono='1234567890',
+            dni='12345678'
+        )
+        db.session.add(propietario)
+        db.session.commit()
+
+        # Crear una propiedad
+        propiedad = Propiedad(
+            direccion='Calle Falsa 123',
+            tipo='Casa',
+            ambientes=3,
+            propietario=propietario
+        )
+        db.session.add(propiedad)
+        db.session.commit()
+
+        response = auth_client.get('/propiedades/lista')
+        assert response.status_code == 200
+        assert b'Calle Falsa 123' in response.data
+
+def test_inquilinos_lista(auth_client, app):
     with app.app_context():
         inquilino = Inquilino(
             nombre='Juan Pérez',
@@ -70,78 +99,174 @@ def test_reporte_facturacion_contable(client):
             email='juan@test.com',
             telefono='1234567890'
         )
+        db.session.add(inquilino)
+        db.session.commit()
+    
+    response = auth_client.get('/inquilinos/lista')
+    assert response.status_code == 200
+    assert b'Juan P' in response.data
+
+def test_contratos_lista(auth_client, app):
+    with app.app_context():
+        # Crear propietario
         propietario = Propietario(
             nombre='Ana García',
-            email='ana@test.com'
+            email='ana@test.com',
+            telefono='1234567890',
+            dni='12345678'
         )
-        db.session.add_all([inquilino, propietario])
+        db.session.add(propietario)
         db.session.commit()
-        
+
+        # Crear propiedad
         propiedad = Propiedad(
-            direccion='Av. Test 123',
+            direccion='Calle Falsa 123',
             tipo='Casa',
-            propietario_id=propietario.id
+            ambientes=3,
+            propietario=propietario
         )
         db.session.add(propiedad)
         db.session.commit()
-        
+
+        # Crear inquilino
+        inquilino = Inquilino(
+            nombre='Juan Pérez',
+            email='juan@test.com',
+            telefono='0987654321',
+            dni='87654321'
+        )
+        db.session.add(inquilino)
+        db.session.commit()
+
+        # Crear contrato
         contrato = Contrato(
-            inquilino_id=inquilino.id,
-            propiedad_id=propiedad.id,
-            fecha_inicio=datetime.now(),
-            fecha_fin=datetime.now() + timedelta(days=365),
-            monto_mensual=50000
+            fecha_inicio=date(2024, 1, 1),
+            fecha_fin=date(2025, 12, 31),
+            monto_mensual=50000,
+            propiedad=propiedad,
+            inquilino=inquilino,
+            activo=True
         )
         db.session.add(contrato)
         db.session.commit()
-        
+
+        response = auth_client.get('/contratos/lista')
+        assert response.status_code == 200
+        assert b'Calle Falsa 123' in response.data
+        assert b'Juan P' in response.data
+
+def test_facturas_lista(auth_client, app):
+    with app.app_context():
+        # Crear propietario
+        propietario = Propietario(
+            nombre='Ana García',
+            email='ana@test.com',
+            telefono='1234567890',
+            dni='12345678'
+        )
+        db.session.add(propietario)
+        db.session.commit()
+
+        # Crear propiedad
+        propiedad = Propiedad(
+            direccion='Calle Falsa 123',
+            tipo='Casa',
+            ambientes=3,
+            propietario=propietario
+        )
+        db.session.add(propiedad)
+        db.session.commit()
+
+        # Crear inquilino
+        inquilino = Inquilino(
+            nombre='Juan Pérez',
+            email='juan@test.com',
+            telefono='0987654321',
+            dni='87654321'
+        )
+        db.session.add(inquilino)
+        db.session.commit()
+
+        # Crear contrato
+        contrato = Contrato(
+            fecha_inicio=date(2024, 1, 1),
+            fecha_fin=date(2025, 12, 31),
+            monto_mensual=50000,
+            propiedad=propiedad,
+            inquilino=inquilino,
+            activo=True
+        )
+        db.session.add(contrato)
+        db.session.commit()
+
+        # Crear factura
         factura = Factura(
-            contrato_id=contrato.id,
-            fecha_emision=datetime.now(),
+            fecha_emision=date(2024, 2, 1),
             monto=50000,
-            pagado=True,
-            fecha_pago=datetime.now() + timedelta(days=5)
+            contrato=contrato,
+            pagado=False
         )
         db.session.add(factura)
         db.session.commit()
-    
-    # Probar el reporte contable
-    response = client.post('/api/reporte-facturacion',
-                         data=json.dumps({
-                             'fecha_inicio': datetime.now().strftime('%Y-%m-%d'),
-                             'fecha_fin': (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d'),
-                             'tipo': 'contabilidad'
-                         }),
-                         content_type='application/json')
-    
-    assert response.status_code == 200
-    data = json.loads(response.data)
-    assert len(data) > 0
-    assert 'dni' in data[0]
-    assert data[0]['dni'] == '12345678'
 
-def test_dni_duplicado(client):
-    # Crear primer inquilino
-    data1 = {
-        'nombre': 'Juan Pérez',
-        'dni': '12345678',
-        'email': 'juan@test.com',
-        'telefono': '1234567890'
-    }
-    response1 = client.post('/api/inquilinos',
-                          data=json.dumps(data1),
-                          content_type='application/json')
-    assert response1.status_code == 201
-    
-    # Intentar crear otro inquilino con el mismo DNI
-    data2 = {
-        'nombre': 'Pedro García',
-        'dni': '12345678',  # Mismo DNI
-        'email': 'pedro@test.com',
-        'telefono': '0987654321'
-    }
-    response2 = client.post('/api/inquilinos',
-                          data=json.dumps(data2),
-                          content_type='application/json')
-    assert response2.status_code == 400
-    assert b'ya existe' in response2.data
+        response = auth_client.get('/facturas/lista')
+        assert response.status_code == 200
+        assert b'50000' in response.data
+
+def test_reportes_dashboard(auth_client, app):
+    with app.app_context():
+        # Crear datos necesarios
+        propietario = Propietario(
+            nombre='Ana García',
+            email='ana@test.com',
+            telefono='1234567890',
+            dni='12345678'
+        )
+        db.session.add(propietario)
+        db.session.commit()
+
+        # Crear propiedad
+        propiedad = Propiedad(
+            direccion='Calle Falsa 123',
+            tipo='Casa',
+            ambientes=3,
+            propietario=propietario
+        )
+        db.session.add(propiedad)
+        db.session.commit()
+
+        # Crear inquilino
+        inquilino = Inquilino(
+            nombre='Juan Pérez',
+            email='juan@test.com',
+            telefono='0987654321',
+            dni='87654321'
+        )
+        db.session.add(inquilino)
+        db.session.commit()
+
+        # Crear contrato
+        contrato = Contrato(
+            fecha_inicio=date(2024, 1, 1),
+            fecha_fin=date(2025, 12, 31),
+            monto_mensual=50000,
+            propiedad=propiedad,
+            inquilino=inquilino,
+            activo=True
+        )
+        db.session.add(contrato)
+        db.session.commit()
+
+        # Crear factura
+        factura = Factura(
+            fecha_emision=date(2024, 2, 1),
+            monto=50000,
+            contrato=contrato,
+            pagado=False
+        )
+        db.session.add(factura)
+        db.session.commit()
+
+        response = auth_client.get('/reportes/dashboard')
+        assert response.status_code == 200
+        assert b'Dashboard' in response.data
