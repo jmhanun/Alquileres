@@ -6,16 +6,18 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+### Changed
+- Mejorada la documentación de la base de datos en el README
+- Agregada descripción detallada de los campos principales de cada tabla
+- Optimizado el cálculo de totales mensuales usando `func.coalesce`
+- Actualizada la forma de obtener los años disponibles para el reporte anual
+- Mejorada la validación de fechas en los formularios
+
 ### Fixed
 - Corregido el error en el reporte anual relacionado con la conversión de fechas
 - Actualizado el manejo de años en el selector del reporte anual
 - Corregidos los tests para incluir el campo DNI requerido en Propietario
 - Mejorado el manejo de valores nulos en las consultas de facturas
-
-### Changed
-- Optimizado el cálculo de totales mensuales usando `func.coalesce`
-- Actualizada la forma de obtener los años disponibles para el reporte anual
-- Mejorada la validación de fechas en los formularios
 
 ## [1.2.5] - 2025-02-04
 
