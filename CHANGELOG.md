@@ -6,6 +6,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+### Fixed
+- Corregida la configuración de la base de datos SQLite
+  - Uso de rutas absolutas para el archivo de base de datos
+  - Asegurar la existencia del directorio instance con permisos correctos
+- Corregido el error en el reporte anual relacionado con la conversión de fechas
+- Actualizado el manejo de años en el selector del reporte anual
+- Corregidos los tests para incluir el campo DNI requerido en Propietario
+- Mejorado el manejo de valores nulos en las consultas de facturas
+
 ### Changed
 - Actualizada la URL del repositorio en el README
 - Mejorada la documentación de la base de datos en el README
@@ -19,12 +28,6 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Importación/exportación de datos vía CSV
   - Sistema de sugerencia de precios para facturas
   - Otras mejoras de UI/UX y funcionalidad
-
-### Fixed
-- Corregido el error en el reporte anual relacionado con la conversión de fechas
-- Actualizado el manejo de años en el selector del reporte anual
-- Corregidos los tests para incluir el campo DNI requerido en Propietario
-- Mejorado el manejo de valores nulos en las consultas de facturas
 
 ## [1.2.5] - 2025-02-04
 
