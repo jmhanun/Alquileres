@@ -6,18 +6,19 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
-### Added
-- Creado archivo TODO.md con lista de mejoras planificadas
-  - Importación/exportación de datos vía CSV
-  - Sistema de sugerencia de precios para facturas
-  - Otras mejoras de UI/UX y funcionalidad
-
 ### Changed
+- Actualizada la URL del repositorio en el README
 - Mejorada la documentación de la base de datos en el README
 - Agregada descripción detallada de los campos principales de cada tabla
 - Optimizado el cálculo de totales mensuales usando `func.coalesce`
 - Actualizada la forma de obtener los años disponibles para el reporte anual
 - Mejorada la validación de fechas en los formularios
+
+### Added
+- Creado archivo TODO.md con lista de mejoras planificadas
+  - Importación/exportación de datos vía CSV
+  - Sistema de sugerencia de precios para facturas
+  - Otras mejoras de UI/UX y funcionalidad
 
 ### Fixed
 - Corregido el error en el reporte anual relacionado con la conversión de fechas
