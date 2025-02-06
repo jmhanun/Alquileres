@@ -93,11 +93,11 @@ sistema-alquileres/
 El sistema utiliza SQLite como base de datos por defecto. Las tablas principales son:
 
 - `user`: Usuarios del sistema
-- `propietarios`: Propietarios de inmuebles
-- `inquilinos`: Inquilinos de las propiedades
-- `propiedades`: Propiedades disponibles
-- `contratos`: Contratos de alquiler
-- `facturas`: Facturas y pagos
+- `propietarios`: Propietarios de inmuebles (nombre, dni, email, teléfono)
+- `inquilinos`: Inquilinos de las propiedades (nombre, dni, email, teléfono)
+- `propiedades`: Propiedades disponibles (dirección, tipo, ambientes, descripción)
+- `contratos`: Contratos de alquiler (fechas, monto mensual, depósito)
+- `facturas`: Facturas y pagos (fecha emisión, monto, estado de pago)
 
 ## Versiones de Dependencias Principales
 
